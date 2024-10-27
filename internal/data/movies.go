@@ -7,7 +7,7 @@ type Movie struct {
 	CreatedAt time.Time `json:"-"` // this isn't relative for end-user hence use - directive
 	Title     string    `json:"title"`
 	Year      int32     `json:"year,omitempty"`
-	Runtime   int32     `json:"runtime,omitempty"` // movie runtime (in minutes)
+	Runtime   Runtime   `json:"runtime,omitempty"` // movie runtime (in minutes)
 	Geners    []string  `json:"genres,omitempty"`
 	Version   int32     `json:"version"`
 }
