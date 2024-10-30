@@ -11,3 +11,7 @@ type Movie struct {
 	Geners    []string  `json:"genres,omitempty"`
 	Version   int32     `json:"version"`
 }
+
+func ValidateMovie() {
+
+}
