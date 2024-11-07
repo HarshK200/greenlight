@@ -24,6 +24,7 @@ type application struct {
 func main() {
 	var cfg config
 
+    // cli flags
 	flag.IntVar(&cfg.port, "addr", 4000, "the port/addr on which server will run")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 	flag.Parse()

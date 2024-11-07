@@ -23,23 +23,17 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// NOTE: a use n' throw validator
 	v := validator.New()
 
-	v.Check(input.Title != "", "title", "mustbe provided")
-	v.Check(len(input.Title) <= 500, "title", "must not be longer than 500 bytes")
+	movie := &data.Movie{
+		Title:   input.Title,
+		Year:    input.Year,
+		Runtime: input.Runtime,
+		Genres:  input.Genres,
+	}
 
-	v.Check(input.Year != 0, "year", "must be provided")
-	v.Check(input.Year >= 1888, "year", "must be greater than or equal to 1888")
-	v.Check(input.Year <= int32(time.Now().Year()), "year", "must not be in the future")
-
-	v.Check(input.Runtime != 0, "runtime", "must be provided")
-	v.Check(input.Runtime > 0, "runtime", "must be a positive integer")
-
-	v.Check(input.Genres != nil, "genres", "must be provided")
-	v.Check(len(input.Genres) >= 1, "genres", "at least 1 genere must be provided")
-	v.Check(len(input.Genres) <= 5, "genres", "must not contain more than 5 generes")
-
-	v.Check(validator.Unique(input.Genres), "genres", "all geners provided must be unique")
+	data.ValidateMovie(v, movie)
 
 	if !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
@@ -57,12 +51,13 @@ func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// HACK: stubs / mock data
 	movie := data.Movie{
 		ID:        id,
 		CreatedAt: time.Now(),
 		Title:     "dezznuts",
 		Runtime:   102,
-		Geners:    []string{"sci-fi", "horror"},
+		Genres:    []string{"sci-fi", "horror"},
 		Version:   1,
 	}
 

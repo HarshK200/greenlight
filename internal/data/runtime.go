@@ -26,7 +26,7 @@ func (r *Runtime) UnmarshalJSON(JSONData []byte) error {
 		return ErrInvalidRuntimeFormat
 	}
 
-	splits := strings.Split(unquotedJSON, " ")
+	splits := strings.Split(unquotedJSON, " ") // default format (int32 mins)
 	if len(splits) != 2 || splits[1] != "mins" {
 		return ErrInvalidRuntimeFormat
 	}
@@ -36,8 +36,8 @@ func (r *Runtime) UnmarshalJSON(JSONData []byte) error {
 		return ErrInvalidRuntimeFormat
 	}
 
-    // NOTE: can't do int32() typecaste since Runtime is of custom Runtime type even though it's kinda an int32 alias
-    *r = Runtime(runtimeInt) // NOTE: destructure the pointer here
+	// NOTE: can't do int32() typecaste since Runtime is of custom Runtime type even though it's kinda an int32 alias
+	*r = Runtime(runtimeInt) // NOTE: destructure the pointer here
 
 	return nil
 }
