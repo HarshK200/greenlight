@@ -5,7 +5,7 @@ import (
 )
 
 func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
-	env := envelope{
+	response := envelope{
 		"status": "available",
 		"status_info": map[string]string{
 			"environment": app.config.env,
@@ -13,7 +13,7 @@ func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Reques
 		},
 	}
 
-	err := app.writeJSON(w, http.StatusOK, env, nil)
+	err := app.writeJSON(w, http.StatusOK, response, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
