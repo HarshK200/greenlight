@@ -12,7 +12,9 @@ func (app *application) logError(r *http.Request, err error) {
 
 // NOTE: for message we are expecting any struct that we'll JSON encode
 func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
-	env := envelope{"error": message} // NOTE: envelope struct is just an outer warpper type so we can specify what we are sending like data, movie, etc.. (error in our case)
+	// NOTE: envelope struct is just an outer warpper type so we can specify
+    // what we are sending like data, movie, etc.. (error in our case)
+	env := envelope{"error": message}
 
 	err := app.writeJSON(w, status, env, nil)
 	if err != nil {

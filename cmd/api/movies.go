@@ -7,9 +7,10 @@ import (
 
 	"github.com/harshk200/greenlight/internal/data"
 	"github.com/harshk200/greenlight/internal/validator"
+	"github.com/julienschmidt/httprouter"
 )
 
-func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var input struct {
 		Title   string       `json:"title"`
 		Year    int32        `json:"year"`
@@ -40,11 +41,24 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	fmt.Fprintf(w, "%+v\n", input)
+	// NOTE: this call mutates the movie struct itself adding ID, CreatedAt, Version
+	err = app.models.Movies.Create(movie)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	header := make(http.Header)
+	header.Set("Location", fmt.Sprintf("/v1/movies/%d", movie.ID))
+
+	err = app.writeJSON(w, http.StatusCreated, envelope{"movie": movie}, header)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
 
-func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
+func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	id, err := app.readIDParam(&ps)
 	// NOTE: the id will be a unique positive integer
 	if err != nil {
 		app.notFoundResponse(w, r)

@@ -13,9 +13,9 @@ func (app *application) routes() *httprouter.Router {
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	// routes
-	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
-	router.HandlerFunc(http.MethodPost, "/v1/movies", app.createMovieHandler)
-	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.showMovieHandler)
+	router.GET("/v1/healthcheck", app.healthcheckHandler)
+	router.POST("/v1/movies", app.createMovieHandler)
+	router.GET("/v1/movies/:id", app.showMovieHandler)
 
 	return router
 }

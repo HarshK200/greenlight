@@ -14,9 +14,8 @@ import (
 
 type envelope map[string]any
 
-func (app *application) readIDParam(r *http.Request) (int64, error) {
-	params := httprouter.ParamsFromContext(r.Context())
-	idStr := params.ByName("id")
+func (app *application) readIDParam(ps *httprouter.Params) (int64, error) {
+	idStr := ps.ByName("id")
 
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	// NOTE: the id will be a unique positive integer
@@ -56,9 +55,10 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 
-    // WARN: sh*t ton of error handeling
+	// decoding the json to destination
 	err := decoder.Decode(dst)
 	if err != nil {
+		// errors instances for checks
 		var syntaxError *json.SyntaxError
 		var unmarshalTypeError *json.UnmarshalTypeError
 		var invalidUnmarshalError *json.InvalidUnmarshalError
@@ -95,7 +95,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 		}
 	}
 
-	// NOTE: decoding the value into an anonymous struct, to make sure we get only one json object as input
+	// NOTE: decoding the value a second time, to make sure we get only one json object as input
 	err = decoder.Decode(&struct{}{})
 	if err != io.EOF {
 		return errors.New("body must contain a single JSON value")

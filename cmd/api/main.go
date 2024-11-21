@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/harshk200/greenlight/internal/data"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -30,6 +31,7 @@ type config struct {
 type application struct {
 	config config
 	logger *log.Logger
+	models data.Models
 }
 
 func openDB(cfg *config) (*sql.DB, error) {
@@ -38,7 +40,7 @@ func openDB(cfg *config) (*sql.DB, error) {
 		return nil, err
 	}
 
-	// NOTE: postgreSQL db config
+	// setting connection limits
 	db.SetMaxOpenConns(cfg.db.maxOpenConns)
 	db.SetMaxIdleConns(cfg.db.maxIdleConns)
 	duration, err := time.ParseDuration(cfg.db.maxIdleTime)
@@ -69,9 +71,10 @@ func main() {
 
 	var cfg config
 
-	// cli flags
+	// CLI flags
 	flag.IntVar(&cfg.port, "addr", 4000, "the port/addr on which server will run")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
+	// db connection flags
 	flag.StringVar(&cfg.db.dns, "db-dns", os.Getenv("POSTGRES_URL"), "DNS for the database (postgres-db)")
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
@@ -86,11 +89,13 @@ func main() {
 		log.Fatal("Error connecting to the db", err)
 	}
 	defer db.Close()
+
 	logger.Println("postgres DB connection established")
 
 	app := &application{
 		config: cfg,
 		logger: logger,
+		models: data.NewModels(db),
 	}
 
 	srv := &http.Server{
