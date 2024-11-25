@@ -6,25 +6,15 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
+	"github.com/harshk200/greenlight/internal/validator"
 	"github.com/julienschmidt/httprouter"
 )
 
 type envelope map[string]any
-
-func (app *application) readIDParam(ps *httprouter.Params) (int64, error) {
-	idStr := ps.ByName("id")
-
-	id, err := strconv.ParseInt(idStr, 10, 64)
-	// NOTE: the id will be a unique positive integer
-	if err != nil || id < 1 {
-		return 0, errors.New("Invalid id parameter")
-	}
-
-	return id, nil
-}
 
 func (app *application) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
 	js, err := json.MarshalIndent(data, "", "\t")
@@ -53,7 +43,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
 
 	decoder := json.NewDecoder(r.Body)
-    decoder.DisallowUnknownFields() // NOTE: Extra field are not allowed
+	decoder.DisallowUnknownFields() // NOTE: Extra field are not allowed
 
 	// decoding the json to destination
 	err := decoder.Decode(dst)
@@ -102,4 +92,52 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 	}
 
 	return nil
+}
+
+func (app *application) readIDParam(ps *httprouter.Params) (int64, error) {
+	idStr := ps.ByName("id")
+
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	// NOTE: the id will be a unique positive integer
+	if err != nil || id < 1 {
+		return 0, errors.New("Invalid id parameter")
+	}
+
+	return id, nil
+}
+
+func (app *application) readString(qs url.Values, key string, defaultValue string) string {
+	q := qs.Get(key)
+
+	if q == "" {
+		return defaultValue
+	}
+
+	return q
+}
+
+func (app *application) readCSV(qs url.Values, key string, defaultValue []string) []string {
+	q := qs.Get(key)
+
+	if q == "" {
+		return defaultValue
+	}
+
+	return strings.Split(q, ",")
+}
+
+func (app *application) readInt(qs url.Values, key string, defaultValue int, v *validator.Validator) int {
+	q := qs.Get(key)
+
+    if q == "" {
+        return defaultValue
+    }
+
+	value, err := strconv.Atoi(q)
+	if err != nil {
+        v.AddError(key, "must be an integer value")
+		return defaultValue
+	}
+
+	return value
 }

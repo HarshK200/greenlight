@@ -10,6 +10,33 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+func (app *application) listMovieHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	var input struct {
+		Title    string
+		Genres   []string
+		Page     int
+		PageSize int
+		Sort     string
+	}
+
+	v := validator.New()
+
+	qs := r.URL.Query()
+
+	input.Title = app.readString(qs, "title", "")
+	input.Genres = app.readCSV(qs, "genres", []string{})
+	input.Page = app.readInt(qs, "page", 1, v)
+	input.PageSize = app.readInt(qs, "page_size", 20, v) // fetch 20 records per page by default
+	input.Sort = app.readString(qs, "sort", "id")        // sort using id by default
+
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	fmt.Fprintf(w, "%+v\n", input)
+}
+
 func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var input struct {
 		Title   string       `json:"title"`
