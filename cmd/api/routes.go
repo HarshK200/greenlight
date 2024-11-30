@@ -15,7 +15,7 @@ func (app *application) routes() *httprouter.Router {
 	// routes
 	router.GET("/v1/healthcheck", app.healthcheckHandler)
 	//movies routes
-    router.GET("/v1/movies", app.listMovieHandler)
+    router.GET("/v1/movies", app.listMovieHandler) // TODO:
 	router.POST("/v1/movies", app.createMovieHandler)
 	router.GET("/v1/movies/:id", app.showMovieHandler)
 	router.PATCH("/v1/movies/:id", app.updateMovieHandler)
