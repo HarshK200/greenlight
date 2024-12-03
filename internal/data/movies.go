@@ -54,10 +54,51 @@ func (m *MovieModel) Create(movie *Movie) error {
 		pq.Array(movie.Genres),
 	}
 
-    ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
-    defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
 	return m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
+}
+
+func (m *MovieModel) GetAll() ([]*Movie, error) {
+	query := `
+    Select * FROM movies
+    ORDER BY id DESC`
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	// defering a call to rows.close to ensure that resultset is closed before GetAll() returns
+	defer rows.Close()
+
+	movies := []*Movie{}
+
+	for rows.Next() {
+		var movie Movie
+
+		err := rows.Scan(
+			&movie.ID,
+			&movie.CreatedAt,
+			&movie.Title,
+			&movie.Year,
+			&movie.Runtime,
+			pq.Array(&movie.Genres),
+			&movie.Version,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		movies = append(movies, &movie)
+	}
+
+	return movies, nil
 }
 
 func (m *MovieModel) Get(id int64) (*Movie, error) {
@@ -72,8 +113,8 @@ func (m *MovieModel) Get(id int64) (*Movie, error) {
 
 	var movie Movie
 
-    ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
-    defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
 	err := m.DB.QueryRowContext(ctx, query, id).Scan(
 		&movie.ID,
@@ -110,46 +151,47 @@ func (m *MovieModel) Update(movie *Movie) error {
 		movie.Runtime,
 		pq.Array(movie.Genres),
 		movie.ID,
-        movie.Version,
+		movie.Version,
 	}
 
-    ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
-    defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-    err := m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.Version)
-    if err != nil {
-        switch {
-        case errors.Is(err, sql.ErrNoRows):
-            return ErrEditConflict
-        default:
-            return err
-        }
-    }
+	// NOTE: this returns the updated movies and writes it to the movie parameter
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.Version)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
 
-    return nil
+	return nil
 }
 
 func (m *MovieModel) Delete(id int64) error {
-    query := `
+	query := `
     DELETE FROM movies
     WHERE id = $1`
 
-    ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
-    defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-    result, err := m.DB.ExecContext(ctx, query, id)
-    if err != nil {
-        return err
-    }
+	result, err := m.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
 
-    rowsAffected, err := result.RowsAffected()
-    if err != nil {
-        return err
-    }
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
 
-    if rowsAffected == 0 {
-        return ErrRecordNotFound
-    }
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
 
 	return nil
 }
