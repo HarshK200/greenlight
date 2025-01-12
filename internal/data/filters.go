@@ -11,7 +11,7 @@ type Filters struct {
 
 func ValidateFilters(v *validator.Validator, f Filters) {
 	v.Check(f.Page > 0, "page", "must be greater than 0")
-	v.Check(f.Page < 10_000_000, "page_size", "must be smaller than max 10000000")
+	v.Check(f.Page < 10_000_000, "page", "must be smaller than max 10000000")
 	v.Check(f.PageSize > 0, "page_size", "must be greater than 0")
 	v.Check(f.PageSize > 0, "page_size", "maximum allowed value 100")
 

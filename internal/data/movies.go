@@ -61,6 +61,7 @@ func (m *MovieModel) Create(movie *Movie) error {
 }
 
 func (m *MovieModel) GetAll() ([]*Movie, error) {
+    // HACK: the current filter being applied is hardcoded to ID in decending order i.e. -id
 	query := `
     Select * FROM movies
     ORDER BY id DESC`
@@ -68,7 +69,7 @@ func (m *MovieModel) GetAll() ([]*Movie, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query)
+	rows, err := m.DB.QueryContext(ctx, query) // looking for multiple rows hence using QueryContext here
 	if err != nil {
 		return nil, err
 	}

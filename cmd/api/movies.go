@@ -19,7 +19,7 @@ func (app *application) listMovieHandler(w http.ResponseWriter, r *http.Request,
 
 	v := validator.New()
 
-	qs := r.URL.Query()
+	qs := r.URL.Query() // silently discards malformed queries
 
 	input.Title = app.readString(qs, "title", "")
 	input.Genres = app.readCSV(qs, "genres", []string{})
@@ -27,7 +27,17 @@ func (app *application) listMovieHandler(w http.ResponseWriter, r *http.Request,
 	input.Filters.PageSize = app.readInt(qs, "page_size", 20, v) // fetch 20 records per page by default
 	input.Filters.Sort = app.readString(qs, "sort", "id")        // sort using id by default
 
-	input.Filters.SortSafeList = []string{"id", "-id", "title", "-title", "year", "-year", "runtime", "-runtime"}
+    // sortsafelist is what you can sort by
+	input.Filters.SortSafeList = []string{
+		"id",
+		"-id",
+		"title",
+		"-title",
+		"year",
+		"-year",
+		"runtime",
+		"-runtime",
+	}
 
 	data.ValidateFilters(v, input.Filters)
 	if !v.Valid() {

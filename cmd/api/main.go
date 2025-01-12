@@ -19,7 +19,7 @@ const version = "1.0.0"
 
 type config struct {
 	port int
-	env  string
+	env  string // (Can be production or development or staging) This will be used for testing later
 	db   struct {
 		dns          string
 		maxOpenConns int

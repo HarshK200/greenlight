@@ -17,12 +17,12 @@ import (
 type envelope map[string]any
 
 func (app *application) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
-	js, err := json.MarshalIndent(data, "", "\t")
+	jsonString, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
 		return err
 	}
 
-	js = append(js, '\n')
+	jsonString = append(jsonString, '\n')
 
 	// looping through the provided custom headers and adding them to the response writer map
 	for key, value := range headers {
@@ -31,7 +31,7 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data envelo
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	w.Write(js)
+	w.Write(jsonString)
 
 	return nil
 }
