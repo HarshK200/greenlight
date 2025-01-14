@@ -12,7 +12,7 @@ import (
 
 type Movie struct {
 	ID        int64     `json:"id"`
-	CreatedAt time.Time `json:"-"` // this isn't relative for end-user hence use - directive
+    CreatedAt time.Time `json:"-"` // NOTE: this isn't relative for end-user hence use - directive
 	Title     string    `json:"title"`
 	Year      int32     `json:"year,omitempty"`
 	Runtime   Runtime   `json:"runtime,omitempty"` // movie runtime (in minutes)
@@ -60,16 +60,19 @@ func (m *MovieModel) Create(movie *Movie) error {
 	return m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
 }
 
-func (m *MovieModel) GetAll() ([]*Movie, error) {
+func (m *MovieModel) GetAll(title string, genres []string, f Filters) ([]*Movie, error) {
     // HACK: the current filter being applied is hardcoded to ID in decending order i.e. -id
 	query := `
-    Select * FROM movies
-    ORDER BY id DESC`
+    Select id, created_at, title, year, runtime, genres, version
+    FROM movies
+    WHERE (LOWER(title) = LOWER($1) OR $1 = '')
+    AND (genres @> $2 OR $2 = '{}')
+    ORDER BY id` // Default ordering ascending
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query) // looking for multiple rows hence using QueryContext here
+	rows, err := m.DB.QueryContext(ctx, query, title, pq.Array(genres)) // looking for multiple rows hence using QueryContext here
 	if err != nil {
 		return nil, err
 	}
